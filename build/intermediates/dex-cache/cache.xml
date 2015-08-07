@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/Users/AUSPACVISA/Downloads/ENB329_SoccerRobot/app/build/intermediates/exploded-aar/ENB329_SoccerRobot/openCVLibrary300/unspecified/jars/classes.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="0afef54a5c677effc9a3b772f5a3202dd935c0ab">
+        <dex dex="/Users/AUSPACVISA/Downloads/ENB329_SoccerRobot/app/build/intermediates/pre-dexed/debug/classes-9d8c74e8924d445e88a26ffc37a2c2a09c27d878.jar" />
+    </item>
+
+</items>
