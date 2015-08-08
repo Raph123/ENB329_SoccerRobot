@@ -20,6 +20,8 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
 
 public class MainActivity extends Activity implements View.OnTouchListener, CvCameraViewListener2 {
@@ -32,18 +34,15 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
     private MenuItem             mItemSwitchCamera = null;
     private Mat mRgba;
     private Scalar box_colour = new Scalar(255,0,0,255);
-    private Scalar blue = new Scalar(0,0,255,0);
-    private Find find = new Find();
-    //private Find find = new Find();
-    //blue = cv::Scalar(0,0,255);
-
-
-
-
+    private Scalar touchColour = new Scalar(0,0,255,0);
+    private Find find;
+    private Mat Test_view;
 
 
     private Point p1 = new Point(0,0);
     private Point p2 = new Point(0,0);
+
+    public Size Image_size;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -137,6 +136,8 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
         p2.x = touchedRect.x+(touchedRect.width/2);
         p2.y = touchedRect.y-(touchedRect.height/2);
 
+        touchColour = find.Channel_select_ball(mRgba.submat(touchedRect), touchedRect);//passes the touched region to the colour find function
+
 
         Log.i(ForTesting, "Drew Box at: " + x + ", " + y);
         TouchFlag = true;
@@ -146,6 +147,8 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
 
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
+        Image_size = mRgba.size();
+        find = new Find(Image_size);
     }
 
     public void onCameraViewStopped() {
@@ -154,59 +157,13 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         //This function feeds information to the surface?
         mRgba = inputFrame.rgba();
+        //TouchFlag = false;
+        if(TouchFlag){
+            Test_view=find.Threshold_select(mRgba);
+            Imgproc.rectangle(Test_view, p1, p2, box_colour);
+            return Test_view;
+        }
 
-//         Mat Blue_mat= new Mat();
-//        Mat Gray= new Mat();
-//         Mat Red_mat= new Mat();
-//         Mat Alpha_mat= new Mat();
-//         Mat Test= new Mat();
-//         List L1 = new ArrayList();
-//
-//        //----------------------------
-//        L1.add(Blue_mat);
-//        L1.add(Gray);
-//        L1.add(Red_mat);
-//        L1.add(Alpha_mat);
-////---------------------------- Continuously adding list items causes a crash. fix this
-
-//        Test.zeros(mRgba.size(), CvType.CV_8UC1);
-//
-//        int i,j,k = 0;
-
-        //Imgproc.rectangle(mRgba,p1,p2,box_colour);
-
-//        Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_RGBA2RGB);
-//        Core.split(mRgba, L1);
-//
-//        L1.remove(1);
-//        Blue_mat.zeros(mRgba.size(), CvType.CV_8UC1);
-//        L1.add(1, Blue_mat);
-//        //L1.remove(2);
-//        //L1.add(2, Blue_mat);
-//        //L1.remove(3);
-//       // L1.add(3, Blue_mat);
-//
-//
-//        Core.merge(L1, Test);
-
-        //i = mRgba.channels();
-        //j = Blue_mat();
-
-
-
-
-        //Imgproc.HoughCircles(mRgba, Circ, Imgproc.CV_HOUGH_GRADIENT, 2, 10, 100, 300, 20, 400);
-        //i = Circ.dims();
-        //j = Circ.cols();
-        //k = Circ.height();
-
-        //Imgproc.cvtColor(Test, Test, Imgproc.COLOR_RGB2GRAY);
-        //Log.i(ForTesting, "Circ matrix dimensions, width, height are:"+ i + " "+ j +" "+k );
-        //Rect box = new Rect();
-
-        //Imgproc.threshold(mRgba,mRgba,50,200,Imgproc.THRESH_BINARY);
-        //Test = find.Channel_remove(mRgba, 1);
-        mRgba = find.Channel_remove(mRgba);
         return mRgba;
     }
 
