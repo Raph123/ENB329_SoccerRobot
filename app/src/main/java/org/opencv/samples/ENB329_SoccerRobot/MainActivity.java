@@ -37,6 +37,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
     private Scalar touchColour = new Scalar(0,0,255,0);
     private Find find;
     private Mat Test_view;
+    private boolean             MachineviewFlag = false;
 
 
     private Point p1 = new Point(0,0);
@@ -114,7 +115,9 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
 
 
     public boolean onTouch(View v, MotionEvent event){
-
+        /*
+        * On A touch event get a sample of the colour from the touched region for colour processing
+        */
         int xOffset = (mOpenCvCameraView.getWidth() - mRgba.cols()) / 2; //get width of the camera view - retina columns/2
         //method to write x ofset to screen here
         int yOffset = (mOpenCvCameraView.getHeight() - mRgba.rows()) / 2;//get height of the camera view - retina columns/2
@@ -127,23 +130,23 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
 
         touchedRect.x = (x>4) ? x-4 : 0;
         touchedRect.y = (y>4) ? y-4 : 0;
-//generate rectangle for touched region to sample the colour from
-        touchedRect.width = (x+50 < mRgba.cols()) ? x + 50 - touchedRect.x : mRgba.cols() - touchedRect.x;
-        touchedRect.height = (y+50 < mRgba.rows()) ? y + 50 - touchedRect.y : mRgba.rows() - touchedRect.y;
+        //generate rectangle for touched region to sample the colour from
+        touchedRect.width = (x+40 < mRgba.cols()) ? x + 40 - touchedRect.x : mRgba.cols() - touchedRect.x;
+        touchedRect.height = (y+40 < mRgba.rows()) ? y + 40 - touchedRect.y : mRgba.rows() - touchedRect.y;
 
         p1.x = touchedRect.x-(touchedRect.width/2);
         p1.y = touchedRect.y+(touchedRect.height/2);
         p2.x = touchedRect.x+(touchedRect.width/2);
         p2.y = touchedRect.y-(touchedRect.height/2);
 
-        touchColour = find.Channel_select_ball(mRgba.submat(touchedRect), touchedRect);//passes the touched region to the colour find function
-
+        touchColour = find.Channel_select_ball(mRgba.submat(touchedRect), touchedRect);
 
         Log.i(ForTesting, "Drew Box at: " + x + ", " + y);
         TouchFlag = true;
 
         return false;
     }
+
 
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
@@ -155,16 +158,14 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        //This function feeds information to the surface?
+        //This function feeds information to the surface/ screen
         mRgba = inputFrame.rgba();
         //TouchFlag = false;
         if(TouchFlag){
-            Test_view=find.Threshold_select(mRgba);
+            Test_view = find.HSV_select(mRgba);
             Imgproc.rectangle(Test_view, p1, p2, box_colour);
             return Test_view;
         }
-
         return mRgba;
     }
-
 }
