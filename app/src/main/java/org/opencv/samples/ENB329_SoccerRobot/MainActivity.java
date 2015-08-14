@@ -130,8 +130,8 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
         touchedRect.x = (x>4) ? x-4 : 0;
         touchedRect.y = (y>4) ? y-4 : 0;
         //generate rectangle for touched region to sample the colour from
-        touchedRect.width = (x+40 < mRgba.cols()) ? x + 40 - touchedRect.x : mRgba.cols() - touchedRect.x;
-        touchedRect.height = (y+40 < mRgba.rows()) ? y + 40 - touchedRect.y : mRgba.rows() - touchedRect.y;
+        touchedRect.width = (x+20 < mRgba.cols()) ? x + 20 - touchedRect.x : mRgba.cols() - touchedRect.x;
+        touchedRect.height = (y+20 < mRgba.rows()) ? y + 20 - touchedRect.y : mRgba.rows() - touchedRect.y;
 
         p1.x = touchedRect.x-(touchedRect.width/2);
         p1.y = touchedRect.y+(touchedRect.height/2);

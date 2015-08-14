@@ -41,7 +41,7 @@ public class Find {
     private  Mat Kernel_L;
     private Mat Kernel_s;
 
-    private double red_col_tol_u = 0.1; //colour tolerance
+    private double red_col_tol_u = 0.4; //colour tolerance
     private double red_col_tol_l = 0.1;
     private double green_col_tol_u = 0.1;
     private double green_col_tol_l = 0.2;
@@ -103,19 +103,23 @@ public class Find {
 
         //Chromatise and make binary the red channel
         Core.divide(Red_ch_upper, Sum_of_channels, Temp_mat);//divide red channel by the sum of channels to obtain chrome temp store red chrome in complete
-        Imgproc.threshold(Temp_mat, Red_ch_lower, chrome_colour_r-0.1, 255, Imgproc.THRESH_BINARY);//threshold everything above desired chrome value and save to Red_ch_lower
-        Imgproc.threshold(Temp_mat, Red_ch_upper, chrome_colour_r + 0.2, 255, Imgproc.THRESH_BINARY);
-        //Core.bitwise_xor(Red_ch_upper, Red_ch_lower, Red_ch_upper);
+        Imgproc.threshold(Temp_mat, Red_ch_lower, red_col_tol_l, 255, Imgproc.THRESH_BINARY);//threshold everything above desired chrome value and save to Red_ch_lower
+        Imgproc.threshold(Temp_mat, Red_ch_upper, red_col_tol_u, 255, Imgproc.THRESH_BINARY);
+//        if(red_col_tol_u < 0.9){
+//            Core.bitwise_not(Red_ch_upper, Red_ch_upper);
+//            Core.bitwise_and(Red_ch_upper, Red_ch_lower, Red_ch_lower);
+//        }
+
 
         //chromatise and make binary the green channel
         Core.divide(Green_ch_upper, Sum_of_channels, Temp_mat);//chrome the green channel and store into complete temporarily
         Imgproc.threshold(Temp_mat, Green_ch_lower, green_lower_threshold, 255, Imgproc.THRESH_BINARY);//threshold everything above lower green chrome range
         Imgproc.threshold(Temp_mat, Green_ch_upper, green_upper_threshold, 255, Imgproc.THRESH_BINARY);//threshold everything above upper green chrome range
-        //Core.bitwise_not(Green_ch_upper,Green_ch_upper);
+        Core.bitwise_not(Green_ch_upper,Green_ch_upper);
         //Core.bitwise_and(Green_ch_upper, Green_ch_lower, Green_ch_upper);
         //Core.bitwise_xor(Green_ch_upper, Green_ch_lower, Green_ch_upper);//Get rid of pixels above upper green threshold, store in green_ch_upper
 
-        Core.bitwise_xor(Green_ch_upper, Red_ch_lower, Complete);//Write to pixels that are within desired green range AND red range and store in Red_ch_lower
+        Core.bitwise_and(Green_ch_upper, Red_ch_lower, Complete);//Write to pixels that are within desired green range AND red range and store in Red_ch_lower
 
         //clean out the noise
         //for (int i = 0; i < 2; i++) {
