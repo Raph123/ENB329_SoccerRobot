@@ -37,7 +37,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
     private Scalar touchColour = new Scalar(0,0,255,0);
     private Find find;
     private Mat Test_view;
-    private boolean             MachineviewFlag = false;
 
 
     private Point p1 = new Point(0,0);
@@ -131,18 +130,19 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
         touchedRect.x = (x>4) ? x-4 : 0;
         touchedRect.y = (y>4) ? y-4 : 0;
         //generate rectangle for touched region to sample the colour from
-        touchedRect.width = (x+40 < mRgba.cols()) ? x + 40 - touchedRect.x : mRgba.cols() - touchedRect.x;
-        touchedRect.height = (y+40 < mRgba.rows()) ? y + 40 - touchedRect.y : mRgba.rows() - touchedRect.y;
+        touchedRect.width = (x+20 < mRgba.cols()) ? x + 20 - touchedRect.x : mRgba.cols() - touchedRect.x;
+        touchedRect.height = (y+20 < mRgba.rows()) ? y + 20 - touchedRect.y : mRgba.rows() - touchedRect.y;
 
         p1.x = touchedRect.x-(touchedRect.width/2);
         p1.y = touchedRect.y+(touchedRect.height/2);
         p2.x = touchedRect.x+(touchedRect.width/2);
         p2.y = touchedRect.y-(touchedRect.height/2);
-
+        //find.ProcFlag = true;
         touchColour = find.Channel_select_ball(mRgba.submat(touchedRect), touchedRect);
 
         Log.i(ForTesting, "Drew Box at: " + x + ", " + y);
         TouchFlag = true;
+
 
         return false;
     }
@@ -162,7 +162,8 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
         mRgba = inputFrame.rgba();
         //TouchFlag = false;
         if(TouchFlag){
-            Test_view = find.HSV_select(mRgba);
+            //while(find.ProcFlag){}
+            Test_view = find.Chrome(mRgba);
             Imgproc.rectangle(Test_view, p1, p2, box_colour);
             return Test_view;
         }

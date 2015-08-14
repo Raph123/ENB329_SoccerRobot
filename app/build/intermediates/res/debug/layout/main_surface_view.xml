@@ -12,13 +12,6 @@
         opencv:show_fps="true"
         opencv:camera_id="any" />
 
-    <ToggleButton
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/MachineView"
-        android:id="@+id/toggleButton_MacineView"
-        android:layout_gravity="left|bottom"
-        android:checked="true" />
 
 </FrameLayout>
 <!-- From: file:/Users/AUSPACVISA/Downloads/ENB329_SoccerRobot/app/src/main/res/layout/main_surface_view.xml -->
