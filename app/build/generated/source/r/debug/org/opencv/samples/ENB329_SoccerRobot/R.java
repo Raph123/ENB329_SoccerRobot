@@ -40,10 +40,13 @@ containing a value of this type.
         public static final int icon=0x7f020000;
     }
     public static final class id {
+        public static final int Hue1=0x7f050005;
+        public static final int Light_max=0x7f050004;
         public static final int MainActivity_activity_java_surface_view=0x7f050003;
         public static final int any=0x7f050000;
         public static final int back=0x7f050001;
         public static final int front=0x7f050002;
+        public static final int saturation_min=0x7f050006;
     }
     public static final class layout {
         public static final int main_surface_view=0x7f030000;

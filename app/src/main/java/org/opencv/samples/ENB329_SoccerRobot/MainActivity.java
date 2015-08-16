@@ -4,10 +4,9 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.WindowManager;
+import android.widget.SeekBar;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -18,13 +17,11 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
-import org.opencv.imgproc.Imgproc;
 
 
-public class MainActivity extends Activity implements View.OnTouchListener, CvCameraViewListener2 {
+public class MainActivity extends Activity implements CvCameraViewListener2 {
     private static final String TAG = "OCVSample::Activity";
     private static final String ForTesting = "YourCode::Activity!";
 
@@ -39,10 +36,19 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
     private Mat Test_view;
 
 
+
     private Point p1 = new Point(0,0);
     private Point p2 = new Point(0,0);
 
     public Size Image_size;
+
+    private SeekBar Hue1;
+    private SeekBar saturation_min;
+    private SeekBar light_min;
+
+    private int ballHue;
+    private int ballSaturation;
+    private int ballLight;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -52,7 +58,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
-                    mOpenCvCameraView.setOnTouchListener(MainActivity.this);
+                    //mOpenCvCameraView.setOnTouchListener(MainActivity.this);
                 } break;
                 default:
                 {
@@ -80,7 +86,55 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 
         mOpenCvCameraView.setCvCameraViewListener(this);
+//----------Initialize Sliders----------------------------------------------------------------------
+        SeekBar Hue1 = (SeekBar) findViewById(R.id.Hue1);//initialize seek bar
+        SeekBar saturation_min = (SeekBar) findViewById(R.id.saturation_min);
+        SeekBar light_max = (SeekBar) findViewById(R.id.Light_max);
 
+//----------Slider functions------------------------------------------------------------------------
+        Hue1.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar Hue1, int progress, boolean fromUser) {
+                //find.Slider_select(progress, Hue1.getMax());
+                ballHue = progress;
+                TouchFlag = true;
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar Hue1) {
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar Hue1) {
+            }
+        });
+
+        saturation_min.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar saturation_min, int progress, boolean fromUser) {
+                //find.Slider_select(progress, Hue1.getMax());
+                ballSaturation = progress;
+                TouchFlag = true;
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar saturation_min) {
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar saturation_min) {
+            }
+        });
+        light_max.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar light_max, int progress, boolean fromUser) {
+                //find.Slider_select(progress, Hue1.getMax());
+                ballLight = progress;
+                TouchFlag = true;
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar light_max) {
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar light_max) {
+            }
+        });
 
     }
 
@@ -113,39 +167,39 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
     }
 
 
-    public boolean onTouch(View v, MotionEvent event){
-        /*
-        * On A touch event get a sample of the colour from the touched region for colour processing
-        */
-        int xOffset = (mOpenCvCameraView.getWidth() - mRgba.cols()) / 2; //get width of the camera view - retina columns/2
-        //method to write x ofset to screen here
-        int yOffset = (mOpenCvCameraView.getHeight() - mRgba.rows()) / 2;//get height of the camera view - retina columns/2
-        //method to write y offset to screen here
-        int x = (int)event.getX() - xOffset;
-        int y = (int)event.getY() - yOffset;
-        Log.i(ForTesting,"Touched at coordinates: " +x+", "+y);
-
-        Rect touchedRect = new Rect();
-
-        touchedRect.x = (x>4) ? x-4 : 0;
-        touchedRect.y = (y>4) ? y-4 : 0;
-        //generate rectangle for touched region to sample the colour from
-        touchedRect.width = (x+20 < mRgba.cols()) ? x + 20 - touchedRect.x : mRgba.cols() - touchedRect.x;
-        touchedRect.height = (y+20 < mRgba.rows()) ? y + 20 - touchedRect.y : mRgba.rows() - touchedRect.y;
-
-        p1.x = touchedRect.x-(touchedRect.width/2);
-        p1.y = touchedRect.y+(touchedRect.height/2);
-        p2.x = touchedRect.x+(touchedRect.width/2);
-        p2.y = touchedRect.y-(touchedRect.height/2);
-        //find.ProcFlag = true;
-        touchColour = find.Channel_select_ball(mRgba.submat(touchedRect), touchedRect);
-
-        Log.i(ForTesting, "Drew Box at: " + x + ", " + y);
-        TouchFlag = true;
-
-
-        return false;
-    }
+//    public boolean onTouch(View v, MotionEvent event){
+//        /*
+//        * On A touch event get a sample of the colour from the touched region for colour processing
+//        */
+//        int xOffset = (mOpenCvCameraView.getWidth() - mRgba.cols()) / 2; //get width of the camera view - retina columns/2
+//        //method to write x ofset to screen here
+//        int yOffset = (mOpenCvCameraView.getHeight() - mRgba.rows()) / 2;//get height of the camera view - retina columns/2
+//        //method to write y offset to screen here
+//        int x = (int)event.getX() - xOffset;
+//        int y = (int)event.getY() - yOffset;
+//        Log.i(ForTesting,"Touched at coordinates: " +x+", "+y);
+//
+//        Rect touchedRect = new Rect();
+//
+//        touchedRect.x = (x>4) ? x-4 : 0;
+//        touchedRect.y = (y>4) ? y-4 : 0;
+//        //generate rectangle for touched region to sample the colour from
+//        touchedRect.width = (x+20 < mRgba.cols()) ? x + 20 - touchedRect.x : mRgba.cols() - touchedRect.x;
+//        touchedRect.height = (y+20 < mRgba.rows()) ? y + 20 - touchedRect.y : mRgba.rows() - touchedRect.y;
+//
+//        p1.x = touchedRect.x-(touchedRect.width/2);
+//        p1.y = touchedRect.y+(touchedRect.height/2);
+//        p2.x = touchedRect.x+(touchedRect.width/2);
+//        p2.y = touchedRect.y-(touchedRect.height/2);
+//        //find.ProcFlag = true;
+//        touchColour = find.Channel_select_ball(mRgba.submat(touchedRect), touchedRect);
+//
+//        Log.i(ForTesting, "Drew Box at: " + x + ", " + y);
+//        TouchFlag = true;
+//
+//
+//        return false;
+//    }
 
 
     public void onCameraViewStarted(int width, int height) {
@@ -163,8 +217,9 @@ public class MainActivity extends Activity implements View.OnTouchListener, CvCa
         //TouchFlag = false;
         if(TouchFlag){
             //while(find.ProcFlag){}
-            Test_view = find.Chrome(mRgba);
-            Imgproc.rectangle(Test_view, p1, p2, box_colour);
+            //Test_view = find.Chrome(mRgba);
+            //Imgproc.rectangle(Test_view, p1, p2, box_colour);
+            Test_view = find.HSV_select(mRgba, ballHue, ballSaturation, ballLight);
             return Test_view;
         }
         return mRgba;
