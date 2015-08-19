@@ -18,7 +18,7 @@ public class Find {
 
     private Mat Red_ch_upper;
     private Mat Red_ch_lower;
-    private Mat Complete;
+    public Mat Complete;
     private Mat Kernel;
 
     //moments
@@ -48,7 +48,8 @@ public class Find {
 
     public Mat HSV_select(Mat image, int hue, int saturation, int light){
         /*
-        This function is used to select an HSV value to use for thresholding.
+        This function is used to select an HSV value to use for thresholding. It will output the
+        image with the largest circle of desired hue encricled.
         Input parameters
         - image: the image that is going to be processed. Must be of type MAT
         - hue: The desired hue. Every pixel that has a value of +-10units from the desired hue will
@@ -57,6 +58,7 @@ public class Find {
         that a pixel can have in order to be processed. All pixels with a lower value will be ignored
         - light: The minimum desired light value. All pixels with a light value that is lower than
         this will be ignored.
+
          */
         Imgproc.cvtColor(image, imageHSV, Imgproc.COLOR_RGB2HSV);
         Core.extractChannel(imageHSV, Hue_ch, 0);//Extract the hue channel to the Matrix "complete"
@@ -100,9 +102,9 @@ public class Find {
                 Center.y = circle[1];
             }
         }
+        //Imgproc.cvtColor(image, imageHSV, Imgproc.COLOR_RGB2HSV);
         Imgproc.circle(image, Center, radius, new Scalar(255, 0, 0, 255), 1);
-
-
+        Imgproc.circle(Complete, Center, radius, new Scalar(255, 0, 0, 255), 1);
         return image;
     }
 }

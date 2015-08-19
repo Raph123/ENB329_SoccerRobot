@@ -21,8 +21,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:id="@+id/Light_max"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true" />
+            android:layout_alignParentBottom="true" />
 
         <SeekBar
             android:layout_width="fill_parent"
@@ -30,16 +29,21 @@
             android:id="@+id/Hue1"
             android:indeterminate="false"
             android:layout_gravity="center_horizontal|top"
-            android:layout_above="@+id/saturation_min"
-            android:layout_alignParentLeft="true" />
+            android:layout_above="@+id/saturation_min" />
 
         <SeekBar
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:id="@+id/saturation_min"
             android:layout_gravity="center|bottom"
-            android:layout_above="@+id/Light_max"
-            android:layout_alignParentLeft="true" />
+            android:layout_above="@+id/Light_max" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/Ball"
+            android:id="@+id/Ball" />
 
     </RelativeLayout>
 

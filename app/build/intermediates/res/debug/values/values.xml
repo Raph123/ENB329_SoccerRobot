@@ -3,6 +3,8 @@
     <declare-styleable name="CameraBridgeViewBase"><attr format="boolean" name="show_fps"/><attr format="integer" name="camera_id"><enum name="any" value="-1"/><enum name="back" value="99"/><enum name="front" value="98"/></attr></declare-styleable>
     <!-- From: file:/Users/AUSPACVISA/Downloads/ENB329_SoccerRobot/app/src/main/res/values/strings.xml -->
     <eat-comment/>
+    <string name="Ball">Set Ball Colour</string>
     <string name="MachineView">MachineView</string>
+    <string name="Obstacle">Set Obstacle</string>
     <string name="app_name">ENB329_SoccerRobot</string>
 </resources>

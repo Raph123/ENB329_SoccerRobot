@@ -40,6 +40,7 @@ containing a value of this type.
         public static final int icon=0x7f020000;
     }
     public static final class id {
+        public static final int Ball=0x7f050007;
         public static final int Hue1=0x7f050005;
         public static final int Light_max=0x7f050004;
         public static final int MainActivity_activity_java_surface_view=0x7f050003;
@@ -52,8 +53,10 @@ containing a value of this type.
         public static final int main_surface_view=0x7f030000;
     }
     public static final class string {
-        public static final int MachineView=0x7f040000;
-        public static final int app_name=0x7f040001;
+        public static final int Ball=0x7f040000;
+        public static final int MachineView=0x7f040001;
+        public static final int Obstacle=0x7f040002;
+        public static final int app_name=0x7f040003;
     }
     public static final class styleable {
         /** Attributes that can be used with a CameraBridgeViewBase.
