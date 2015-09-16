@@ -1,14 +1,28 @@
 package org.opencv.samples.ENB329_SoccerRobot;
 
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.util.Log;
+import android.widget.ListView;
+
+import java.util.Set;
 
 /**
  * Created by Raphael Cardona on 5/08/15.
  * This is the move class which is contains the methods necessary for motor control and movement
  */
-public class Move {
+public class Move extends Activity {
 
     private static final String ForTesting = "MoveFunctions::";
+
+    //bluetooth stuff
+    private BluetoothAdapter mBluetoothAdapter;
+    private Set<BluetoothDevice> pairedDevices;
+    ListView lv;
+    //End of bluetooth stuff
+
     int r = 0; //distance between the centre of the robot and the centre of the ball during contact
 
     public boolean Setup(){
@@ -16,9 +30,24 @@ public class Move {
         Log.i(ForTesting, "Setting up Bluetooth Communication");
         //Todo: Implement bluetooth module
         //Todo: Setup bluetooth communication
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null){
+            //error case here, no bluetooth support
+        }
+        else{
+            if (!mBluetoothAdapter.isEnabled()){
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent,0);
+            }
+        }
 
 
         return false;
+    }
+
+    private void bluetoothVisible(){
+        Intent getVisible = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        startActivityForResult(getVisible,0);
     }
 
     public boolean find_ball(){

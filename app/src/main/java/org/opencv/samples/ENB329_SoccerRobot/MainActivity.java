@@ -3,7 +3,6 @@ package org.opencv.samples.ENB329_SoccerRobot;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -18,43 +17,50 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+
+import java.util.List;
+
+import static org.opencv.imgproc.Imgproc.rectangle;
 
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
     private static final String TAG = "OCVSample::Activity";
-    private static final String ForTesting = "YourCode::Activity!";
+//    private static final String ForTesting = "YourCode::Activity!";
 
     private CameraBridgeViewBase mOpenCvCameraView;
-    private boolean              TouchFlag = false;
-    private boolean              mIsJavaCamera = true;
-    private MenuItem             mItemSwitchCamera = null;
+
     private Mat mRgba;
-    private Scalar box_colour = new Scalar(255,0,0,255);
-    private Scalar touchColour = new Scalar(0,0,255,0);
-    private Find find;
-    private Mat Test_view;
-    private Button findBall;
-
-
-
-    private Point p1 = new Point(0,0);
-    private Point p2 = new Point(0,0);
-
     public Size Image_size;
 
+    private Find ball;
+    private Find obstacle;
+
+//    public static boolean screenVertical = true;
+//    public static boolean screenHorizontal = false;
+
+    //widgets--------------------------
+    private Button findObstacle;
+    private Button findBall;
     private SeekBar Hue1;
     private SeekBar saturation_min;
     private SeekBar light_min;
 
-
+//-----------Image processing paramter variables--------------
     private int ballHue;
     private int ballSaturation;
     private int ballLight;
+    private int obstacleHue;
+    private int obstacleSaturation;
+    private int obstacleLight;
+
 
     public boolean ballView;
+    public boolean obstacleView;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -90,9 +96,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         setContentView(R.layout.main_surface_view);
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.MainActivity_activity_java_surface_view);
-
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-
         mOpenCvCameraView.setCvCameraViewListener(this);
 //----------Initialize Sliders----------------------------------------------------------------------
         SeekBar Hue1 = (SeekBar) findViewById(R.id.Hue1);//initialize seek bar
@@ -100,12 +104,17 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         SeekBar light_max = (SeekBar) findViewById(R.id.Light_max);
 
 //----------Slider functions------------------------------------------------------------------------
+
         Hue1.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar Hue1, int progress, boolean fromUser) {
-                //find.Slider_select(progress, Hue1.getMax());
-                ballHue = progress;
-                TouchFlag = true;
+                if (ballView){
+                    ballHue = progress;
+                }
+                else if (obstacleView){
+                    obstacleHue = progress;
+                }
+
             }
             @Override
             public void onStartTrackingTouch(SeekBar Hue1) {
@@ -118,9 +127,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         saturation_min.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar saturation_min, int progress, boolean fromUser) {
-                //find.Slider_select(progress, Hue1.getMax());
-                ballSaturation = progress;
-                TouchFlag = true;
+                if (ballView){
+                    ballSaturation = progress;
+                }
+                else if(obstacleView){
+                    obstacleSaturation = progress;
+                }
+
             }
             @Override
             public void onStartTrackingTouch(SeekBar saturation_min) {
@@ -132,9 +145,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         light_max.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar light_max, int progress, boolean fromUser) {
-                //find.Slider_select(progress, Hue1.getMax());
-                ballLight = progress;
-                TouchFlag = true;
+                if (ballView){
+                    ballLight = progress;
+                }
+                else if (obstacleView){
+                    obstacleLight = progress;
+                }
+
             }
             @Override
             public void onStartTrackingTouch(SeekBar light_max) {
@@ -142,22 +159,26 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             @Override
             public void onStopTrackingTouch(SeekBar light_max) {
             }
+
         });
 //-----------Toggle Button----------------------------------------------------------------------------
         findBall = (Button) findViewById(R.id.Ball);
-        findBall.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ballView = (ballView == true) ? false : true;
-            }
-        });
+        findObstacle = (Button) findViewById(R.id.obstacle);
 
 
     }
 
+    public void setBallColour(View v){
+        ballView = !ballView;
+        obstacleView = false;
+    }
+    public void setObstacleColour(View v){
+        obstacleView = !obstacleView;
+        ballView = false;
+    }
+
     @Override
-    public void onPause()
-    {
+    public void onPause() {
         super.onPause();
         if (mOpenCvCameraView != null)
             mOpenCvCameraView.disableView();
@@ -188,22 +209,50 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
         Image_size = mRgba.size();
-        find = new Find(Image_size);
+        ball = new Find(Image_size);
+        obstacle = new Find(Image_size);
+        ball.setResizeFactor(4);
+        obstacle.setResizeFactor(6);
     }
 
     public void onCameraViewStopped() {
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        //This function feeds information to the surface/ screen
+        //when a camera frame is available
         mRgba = inputFrame.rgba();
-        //TouchFlag = false;
-        Test_view = find.HSV_select(mRgba, ballHue, ballSaturation, ballLight);
+        //Process the images
+
+        ball.findCircle(mRgba, ballHue, ballSaturation, ballLight);
+        obstacle.findObstacle(mRgba, obstacleLight, obstacleSaturation);
+
         if(ballView){
-            return find.Complete;
+            Imgproc.circle(ball.Complete, ball.Center, ball.radius, new Scalar(255,0,0,255), 4);
+            return ball.Complete;
+        }
+        else if(obstacleView){
+            //Todo: create an obstacle method in the find class, or create a find class for obstacles
+            //Imgproc.rectangle(obstacle.Complete, );
+            List <MatOfPoint> contours = obstacle.getContours();
+
+
+            return obstacle.Complete;
         }
         else{
-            return Test_view;
+            List<MatOfPoint> contours = obstacle.getContours();
+            Imgproc.circle(mRgba, ball.Center, ball.radius, new Scalar(0,255,0,255), 4);
+            //Imgproc.drawContours(mRgba, contours, -1, new Scalar(0, 0, 255, 255));
+            for(int i = 0; i<contours.size();i++){
+                if (Imgproc.contourArea(contours.get(i)) > 20 ){
+                    org.opencv.core.Rect rect = Imgproc.boundingRect(contours.get(i));
+                    if(Imgproc.contourArea(contours.get(i))/ (rect.width*rect.height) > 0.75) {
+                        rectangle(mRgba, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 0, 255, 255));
+                    }
+                }
+            }
+            //Imgproc.rectangle(mRggba, obstacle.Center, ... new Scalar(255,0,0,255);
+            return mRgba;
         }
+
     }
 }

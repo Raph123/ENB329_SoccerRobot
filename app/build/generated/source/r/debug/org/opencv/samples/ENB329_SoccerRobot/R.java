@@ -47,6 +47,7 @@ containing a value of this type.
         public static final int any=0x7f050000;
         public static final int back=0x7f050001;
         public static final int front=0x7f050002;
+        public static final int obstacle=0x7f050008;
         public static final int saturation_min=0x7f050006;
     }
     public static final class layout {

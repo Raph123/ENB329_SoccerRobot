@@ -8,6 +8,7 @@ int id MainActivity_activity_java_surface_view 0x7f050003
 int id any 0x7f050000
 int id back 0x7f050001
 int id front 0x7f050002
+int id obstacle 0x7f050008
 int id saturation_min 0x7f050006
 int layout main_surface_view 0x7f030000
 int string Ball 0x7f040000

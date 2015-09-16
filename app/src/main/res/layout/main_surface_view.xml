@@ -44,8 +44,19 @@
             android:layout_height="wrap_content"
             android:text="@string/Ball"
             android:id="@+id/Ball"
+            android:onClick="setBallColour"
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set obstacle colour"
+            android:id="@+id/obstacle"
+            android:onClick="setObstacleColour"
+            android:layout_below="@+id/Ball"
+            android:layout_alignRight="@+id/Ball" />
 
     </RelativeLayout>
 
