@@ -193,7 +193,6 @@ public class Find {
                 mContours.add(contour);
             }
         }
-
     }
 
     public List<MatOfPoint> getContours() {

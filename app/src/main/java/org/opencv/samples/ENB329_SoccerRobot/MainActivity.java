@@ -1,12 +1,16 @@
 package org.opencv.samples.ENB329_SoccerRobot;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.SeekBar;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -24,6 +28,7 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.opencv.imgproc.Imgproc.rectangle;
 
@@ -61,6 +66,18 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     public boolean ballView;
     public boolean obstacleView;
+
+    public Point obstacle_location;
+
+//-------Bluetooth Connection -----------------------------------//
+    private BluetoothAdapter mBluetoothAdapter;
+    private Set<BluetoothDevice> pairedDevices;
+    private ListView lv;
+    private BluetoothDevice mDevice;
+
+    byte[] testArray = new byte[] {72,69,76,76,79};
+    //private final BluetoothSocket mmSocket;
+
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -102,6 +119,22 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         SeekBar Hue1 = (SeekBar) findViewById(R.id.Hue1);//initialize seek bar
         SeekBar saturation_min = (SeekBar) findViewById(R.id.saturation_min);
         SeekBar light_max = (SeekBar) findViewById(R.id.Light_max);
+
+//----------Bluetooth stuff--------------
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null){
+            //error case here, no bluetooth support
+        }
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, 1);
+        }
+        pairedDevices = mBluetoothAdapter.getBondedDevices();
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
+                mDevice = device;
+            }
+        }
 
 //----------Slider functions------------------------------------------------------------------------
 
@@ -213,6 +246,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         obstacle = new Find(Image_size);
         ball.setResizeFactor(4);
         obstacle.setResizeFactor(6);
+        obstacle_location = new Point(0, 0);
     }
 
     public void onCameraViewStopped() {
@@ -241,18 +275,31 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         else{
             List<MatOfPoint> contours = obstacle.getContours();
             Imgproc.circle(mRgba, ball.Center, ball.radius, new Scalar(0,255,0,255), 4);
-            //Imgproc.drawContours(mRgba, contours, -1, new Scalar(0, 0, 255, 255));
+            Log.i(TAG, "Ball at at x =" + ball.Center.x + " ,y =" + ball.Center.y);
+            //mConnectedThread.write(testArray);
+            //Draw objects to surface
             for(int i = 0; i<contours.size();i++){
+                obstacle_location.x = 0;
+                obstacle_location.y = 0;
                 if (Imgproc.contourArea(contours.get(i)) > 20 ){
                     org.opencv.core.Rect rect = Imgproc.boundingRect(contours.get(i));
                     if(Imgproc.contourArea(contours.get(i))/ (rect.width*rect.height) > 0.75) {
+                        obstacle_location.x = rect.x+(rect.height/2);
+                        obstacle_location.y = rect.y+(rect.height/2);
                         rectangle(mRgba, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 0, 255, 255));
+                        Log.i(TAG, "Obstacle at x =" + obstacle_location.x + " ,y =" + obstacle_location.y);
+                        //rectangle (mRgba, new Point(0,0), new Point(250, 250), new Scalar (255,0,0,255));
+                    }
+                    else{
+                        Log.i(TAG, "No Obstacles found");
                     }
                 }
             }
-            //Imgproc.rectangle(mRggba, obstacle.Center, ... new Scalar(255,0,0,255);
             return mRgba;
         }
 
     }
+
+
 }
+
