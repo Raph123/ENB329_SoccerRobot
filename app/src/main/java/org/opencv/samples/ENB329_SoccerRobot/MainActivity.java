@@ -3,7 +3,6 @@ package org.opencv.samples.ENB329_SoccerRobot;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceView;
@@ -23,10 +22,12 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -51,6 +52,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     //widgets--------------------------
     private Button findObstacle;
     private Button findBall;
+    private Button goalFind;
     private SeekBar Hue1;
     private SeekBar saturation_min;
     private SeekBar light_min;
@@ -62,22 +64,29 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     private int obstacleHue;
     private int obstacleSaturation;
     private int obstacleLight;
-
+    private int goalHue;
+    private int goalSaturation;
+    private int goalLight;
 
     public boolean ballView;
     public boolean obstacleView;
+    public boolean goalView;
+    public boolean goalSet;
 
     public Point obstacle_location;
+
+    private BT_helper BTCom;
+
+    private Move motorControl;
 
 //-------Bluetooth Connection -----------------------------------//
     private BluetoothAdapter mBluetoothAdapter;
     private Set<BluetoothDevice> pairedDevices;
     private ListView lv;
     private BluetoothDevice mDevice;
+    char[] testArray = new char[] {72,69,76};
 
-    byte[] testArray = new byte[] {72,69,76,76,79};
-    //private final BluetoothSocket mmSocket;
-
+    private org.opencv.core.Rect rect;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -105,8 +114,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     public void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "called onCreate");
         super.onCreate(savedInstanceState);
-
-        ballView = false;
+        rect = new Rect();
+        ballView = true;
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -121,20 +130,15 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         SeekBar light_max = (SeekBar) findViewById(R.id.Light_max);
 
 //----------Bluetooth stuff--------------
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null){
-            //error case here, no bluetooth support
+        //ToDo: Turn this back on when testing with robot
+        motorControl = new Move();
+        BTCom = new BT_helper();
+        try{
+            BTCom.openCommunication();
+        } catch(IOException ex){
+            Log.i(TAG, "bluetooth failed to open, this will probs crash");
         }
-        if (!mBluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, 1);
-        }
-        pairedDevices = mBluetoothAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                mDevice = device;
-            }
-        }
+
 
 //----------Slider functions------------------------------------------------------------------------
 
@@ -146,6 +150,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 }
                 else if (obstacleView){
                     obstacleHue = progress;
+                }
+                else if (goalView){
+
+                }
+                else if (goalSet){
+                    goalHue = progress;
                 }
 
             }
@@ -166,6 +176,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 else if(obstacleView){
                     obstacleSaturation = progress;
                 }
+                else if(goalView){
+                    obstacleSaturation = progress;
+                }
+                else if (goalSet){
+                    goalSaturation = progress;
+                }
 
             }
             @Override
@@ -184,6 +200,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 else if (obstacleView){
                     obstacleLight = progress;
                 }
+                else if (goalSet){
+                    goalLight = progress;
+                }
 
             }
             @Override
@@ -197,19 +216,39 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 //-----------Toggle Button----------------------------------------------------------------------------
         findBall = (Button) findViewById(R.id.Ball);
         findObstacle = (Button) findViewById(R.id.obstacle);
+        goalFind = (Button) findViewById(R.id.goalSet);
 
+        //mConnectThread = new ConnectThread(mDevice);
+        //mConnectThread.start();
 
     }
 
     public void setBallColour(View v){
         ballView = !ballView;
         obstacleView = false;
+        goalView = false;
+        goalSet = false;
     }
     public void setObstacleColour(View v){
         obstacleView = !obstacleView;
         ballView = false;
+        goalView = false;
+        goalSet = false;
     }
 
+    public void setGoalColour(View v)
+    {
+        goalView = !goalView;
+        obstacleView = false;
+        ballView = false;
+        goalSet = false;
+    }
+    public void setGoal(View v){
+        goalSet = !goalSet;
+        goalView = false;
+        obstacleView = false;
+        ballView = false;
+    }
     @Override
     public void onPause() {
         super.onPause();
@@ -256,35 +295,120 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         //when a camera frame is available
         mRgba = inputFrame.rgba();
         //Process the images
+//---------------------These are the finding functions ----------------
 
+        //if found --> find goal
+        //if not found -- do ball.findcircle
+//        if (ball.dribbling) {
+//            //search for goal
+//            ball.findGoal(mRgba, goalHue, goalSaturation, goalLight);
+//        }
+//        else{
         ball.findCircle(mRgba, ballHue, ballSaturation, ballLight);
-        obstacle.findObstacle(mRgba, obstacleLight, obstacleSaturation);
+//        }
 
+        obstacle.findObstacle(mRgba, obstacleLight, obstacleSaturation);
+        //add search for the wall
+        //relate the gradient of the wall to the distance of the robot to the wall
+//---------------------------------------------------------------------
         if(ballView){
             Imgproc.circle(ball.Complete, ball.Center, ball.radius, new Scalar(255,0,0,255), 4);
+            testArray[0] = 'Y';
+            testArray[1] = 'Y';
+            testArray[2] = 'Y';
+
+            try{
+                BTCom.sendData(testArray);
+            }catch(IOException ex){
+                Log.i(TAG, "bluetooth failed to send data");
+                Log.e(TAG, "bluetooth failed to send data");
+            }
+
             return ball.Complete;
         }
+//        if(ballView){
+//            Imgproc.circle(ball.Complete, ball.Center, ball.radius, new Scalar(255,0,0,255), 4);
+//            testArray[0] = 'Y';
+//            testArray[1] = 'Y';
+//            testArray[2] = 'Y';
+//
+//            try{
+//                BTCom.sendData(testArray);
+//            }catch(IOException ex){
+//                Log.i(TAG, "bluetooth failed to send data");
+//                Log.e(TAG, "bluetooth failed to send data");
+//            }
+//
+//            return ball.Complete;
+//        }
         else if(obstacleView){
             //Todo: create an obstacle method in the find class, or create a find class for obstacles
-            //Imgproc.rectangle(obstacle.Complete, );
-            List <MatOfPoint> contours = obstacle.getContours();
 
+            List <MatOfPoint> contours = obstacle.getContours();
+            testArray[0] = 'Y';
+            testArray[1] = 'Y';
+            testArray[2] = 'Y';
+
+            try{
+                BTCom.sendData(testArray);
+            }catch(IOException ex){
+                Log.i(TAG, "bluetooth failed to send data");
+                Log.e(TAG, "bluetooth failed to send data");
+            }
+            //Imgproc.drawContours(obstacle.Complete, wall, -1, new Scalar (255,0,0,255));
 
             return obstacle.Complete;
         }
+        else if (goalView){
+            testArray[0] = 'Y';
+            testArray[1] = 'Y';
+            testArray[2] = 'Y';
+
+            try{
+                BTCom.sendData(testArray);
+            }catch(IOException ex){
+                Log.i(TAG, "bluetooth failed to send data");
+                Log.e(TAG, "bluetooth failed to send data");
+            }
+            return obstacle.Complete1;
+        }
+        else if(goalSet){
+            ball.findGoal(mRgba, goalHue, goalSaturation, goalLight);
+
+
+            testArray[0] = 'Y';
+            testArray[1] = 'Y';
+            testArray[2] = 'Y';
+            try{
+                BTCom.sendData(testArray);
+            }catch(IOException ex){
+                Log.i(TAG, "bluetooth failed to send data");
+                Log.e(TAG, "bluetooth failed to send data");
+            }
+            return ball.Complete;
+        }
         else{
             List<MatOfPoint> contours = obstacle.getContours();
-            Imgproc.circle(mRgba, ball.Center, ball.radius, new Scalar(0,255,0,255), 4);
+            //List<MatOfPoint> wall = obstacle.getWallContours();
+            Imgproc.circle(mRgba, ball.Center, ball.radius, new Scalar(0, 255, 0, 255), 4);
             Log.i(TAG, "Ball at at x =" + ball.Center.x + " ,y =" + ball.Center.y);
-            //mConnectedThread.write(testArray);
+            //Check whether to look for goal or not
+ //           if ((ball.Center.x > 100)||(ball.radius == 0)){
+                //testArray = motorControl.find_ball(ball.Center,rect );
+//            }
+//            else{
+//
+//            }
+
             //Draw objects to surface
+            Imgproc.line(mRgba, obstacle.getWallP1(), obstacle.getWallP2(), new Scalar(255,0,0,255), 2);
             for(int i = 0; i<contours.size();i++){
                 obstacle_location.x = 0;
                 obstacle_location.y = 0;
                 if (Imgproc.contourArea(contours.get(i)) > 20 ){
-                    org.opencv.core.Rect rect = Imgproc.boundingRect(contours.get(i));
+                    rect = Imgproc.boundingRect(contours.get(i));
                     if(Imgproc.contourArea(contours.get(i))/ (rect.width*rect.height) > 0.75) {
-                        obstacle_location.x = rect.x+(rect.height/2);
+                        obstacle_location.x = rect.x+(rect.width/2);
                         obstacle_location.y = rect.y+(rect.height/2);
                         rectangle(mRgba, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(0, 0, 255, 255));
                         Log.i(TAG, "Obstacle at x =" + obstacle_location.x + " ,y =" + obstacle_location.y);
@@ -294,6 +418,22 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                         Log.i(TAG, "No Obstacles found");
                     }
                 }
+            }
+
+//            if(ball.dribbling){
+                testArray = motorControl.find_ball(ball.radius, ball.Center, rect, obstacle.getWallP1(), obstacle.getWallP2(), ball.dribbling);
+//            }
+//            else{
+//                testArray = motorControl.find_ball(ball.rect.width, ball.Center, rect, obstacle.getWallP1(), obstacle.getWallP2(), ball.dribbling);
+//            }
+
+
+            //ToDo: Turn this back on when testing with robot
+            try{
+                BTCom.sendData(testArray);
+            }catch(IOException ex){
+                Log.i(TAG, "bluetooth failed to send data");
+                Log.e(TAG, "bluetooth failed to send data");
             }
             return mRgba;
         }

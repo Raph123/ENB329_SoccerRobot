@@ -57,6 +57,24 @@
             android:onClick="setObstacleColour"
             android:layout_below="@+id/Ball"
             android:layout_alignRight="@+id/Ball" />
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set obstacle colour"
+            android:id="@+id/goal"
+            android:onClick="setGoalColour"
+            android:layout_below="@+id/obstacle"
+            android:layout_alignRight="@+id/obstacle" />
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Set goal colour"
+            android:id="@+id/goalSet"
+            android:onClick="setGoal"
+            android:layout_below="@+id/goal"
+            android:layout_alignRight="@+id/goal" />
 
     </RelativeLayout>
 

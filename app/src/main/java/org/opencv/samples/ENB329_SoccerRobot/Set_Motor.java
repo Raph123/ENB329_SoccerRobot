@@ -4,7 +4,7 @@ package org.opencv.samples.ENB329_SoccerRobot;
  * Created by Raphael on 5/08/15.
  * This class is used to set the pwm cycles for each of the four motors
  */
-public class Set_Motor extends Move {
+public class    Set_Motor extends Move {
 
     public void M1(){
 
