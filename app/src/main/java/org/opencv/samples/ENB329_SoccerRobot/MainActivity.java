@@ -36,7 +36,6 @@ import static org.opencv.imgproc.Imgproc.rectangle;
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
     private static final String TAG = "OCVSample::Activity";
-//    private static final String ForTesting = "YourCode::Activity!";
 
     private CameraBridgeViewBase mOpenCvCameraView;
 
@@ -45,9 +44,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     private Find ball;
     private Find obstacle;
-
-//    public static boolean screenVertical = true;
-//    public static boolean screenHorizontal = false;
 
     //widgets--------------------------
     private Button findObstacle;
@@ -283,7 +279,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         Image_size = mRgba.size();
         ball = new Find(Image_size);
         obstacle = new Find(Image_size);
-        ball.setResizeFactor(4);
+        ball.setResizeFactor(3);
         obstacle.setResizeFactor(6);
         obstacle_location = new Point(0, 0);
     }
@@ -421,12 +417,16 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
             }
 
 //            if(ball.dribbling){
-                testArray = motorControl.find_ball(ball.radius, ball.Center, rect, obstacle.getWallP1(), obstacle.getWallP2(), ball.dribbling);
+                testArray = motorControl.find_ball(ball.radius, ball.Center, rect, obstacle.getWallP1(), obstacle.getWallP2());
 //            }
 //            else{
 //                testArray = motorControl.find_ball(ball.rect.width, ball.Center, rect, obstacle.getWallP1(), obstacle.getWallP2(), ball.dribbling);
 //            }
-
+            if(ball.dribbling){
+                testArray[0] = 108;
+                testArray[1] = 'Y';
+                testArray[2] = 99;
+            }
 
             //ToDo: Turn this back on when testing with robot
             try{

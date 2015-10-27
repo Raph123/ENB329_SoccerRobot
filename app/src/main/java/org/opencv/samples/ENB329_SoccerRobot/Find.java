@@ -112,14 +112,14 @@ public class Find {
         Core.extractChannel(imageHSV, Light_ch, 2);
 
         //This part applies the threshold to the hue values of the image.
-        if(hue-7>0){
-            Imgproc.threshold(Hue_ch, Red_ch_lower,(hue-7), 255, Imgproc.THRESH_BINARY);
+        if(hue-10>0){
+            Imgproc.threshold(Hue_ch, Red_ch_lower,(hue-10), 255, Imgproc.THRESH_BINARY);
         }
         else{
             Imgproc.threshold(Hue_ch, Red_ch_lower,0, 255, Imgproc.THRESH_BINARY);
         }
-        if((hue+7)<255){
-            Imgproc.threshold(Hue_ch, Red_ch_upper,(hue+7), 255, Imgproc.THRESH_BINARY);
+        if((hue+10)<255){
+            Imgproc.threshold(Hue_ch, Red_ch_upper,(hue+10), 255, Imgproc.THRESH_BINARY);
         }
         else{
             Imgproc.threshold(Hue_ch, Red_ch_upper,255, 255, Imgproc.THRESH_BINARY);
@@ -151,8 +151,8 @@ public class Find {
                 Center.y = sizeFactor*circle[1];
             }
         }
-        Complete.submat(0, Complete.height(), 0, 30);
-        dribbling = checkBall(Complete.submat(0, Complete.height(), 0, 20));
+        //Complete.submat(0, Complete.height(), 0, 30);
+        dribbling = checkBall(Complete.submat(0, Complete.height(), 0, 30));
       }
 //    public boolean dribble(Mat image, int light, int saturation, int hue){
 //        //If the ball is in the dribbling zone, return true, otherwise return false
@@ -270,7 +270,7 @@ public class Find {
         //submat should be x = 0 -> 30px and  binary
 
         int n = Core.countNonZero(dribbleSquare);
-        int m = dribbleSquare.height()*30;
+        int m = dribbleSquare.height()*dribbleSquare.width();//height()*30;
         if((n/m)>0.5){
             Log.i("Found the ball!", "ball is being dribbled");
             return true;
@@ -278,9 +278,7 @@ public class Find {
         return false;
     }
 
-//    public void findGoal(Mat image){
-//
-//    }
+
     public void findGoal(Mat image, int hue, int light, int saturation){
             /*
             This function is used to select an HSV value to use for thresholding. It will output the
@@ -370,12 +368,7 @@ public class Find {
             }
         }
 
-
-
-
     }
-
-
 
 
 }
